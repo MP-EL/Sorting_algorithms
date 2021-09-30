@@ -1,18 +1,26 @@
 //Using SDL and standard IO
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <iostream>
 
 //Screen dimensions
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
-const int arraySize = 128;
+const int SCREEN_WIDTH = 1920;
+const int SCREEN_HEIGHT = 1080;
+const int arraySize = 300;
 int array_a[arraySize] = {0};
 const int range = SCREEN_HEIGHT;
-int current_Sort = 0;
-
+int current_Sort = 0, current_Compare = 0;
+int sortingDone = 0;
+//Loop flag
+bool quit = false;
+//Event handler
+SDL_Event kevent;
+int runningDelay = 5;
 //Rendering window
 SDL_Window* gWindow = NULL;
+
+TTF_Font* Sans = TTF_OpenFont("Sans.ttf", 14);
 
 //The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
@@ -63,22 +71,87 @@ void visualize()
     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(gRenderer);
     
-    for (int i = 0; i <= arraySize; i++)
+    for (int i = 0; i <= arraySize-1; i++)
     {
         
-        if(current_Sort == i)
+        if(i == current_Sort)
         {
             SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
+        }
+        else if(i == current_Compare)
+        {
+            SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
         }
         else
         {
             SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0xFF, 0xFF);
         }
-        SDL_Rect outlineRect = {(i)*(SCREEN_WIDTH/arraySize), SCREEN_HEIGHT, (SCREEN_WIDTH/arraySize)-1, -array_a[i]};
+        SDL_Rect outlineRect = {(i)*(SCREEN_WIDTH/arraySize), SCREEN_HEIGHT, float((SCREEN_WIDTH/arraySize)-1), -array_a[i]};
         
         SDL_RenderFillRect(gRenderer, &outlineRect);
     }
     SDL_RenderPresent(gRenderer);
+}
+
+void specialKeys()
+{
+        //User requests quit
+        if(kevent.key.state == SDL_PRESSED)
+        {
+            switch(kevent.key.keysym.sym)
+            {
+                case SDLK_q:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        quit = true;
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                case SDLK_PLUS:
+                case SDLK_KP_PLUS:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        runningDelay = runningDelay + 1;
+                        std::cout << "Changed running delay to: " << runningDelay << " ms" << std::endl;
+                        break;
+                    }
+                    else
+                    {
+                        break;
+                    }          
+                case SDLK_MINUS:
+                case SDLK_KP_MINUS:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        if(runningDelay == 0)
+                        {
+                            runningDelay = 0;
+                        }
+                        else
+                        {
+                            runningDelay = runningDelay - 1;
+                            std::cout << "Changed running delay to: " << runningDelay << " ms" << std::endl;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                break;   
+            }
+        } 
+}
+
+void specialKeyHandler()
+{
+    if(SDL_PollEvent(&kevent) !=0)
+    {
+        specialKeys();
+    }
 }
 
 void randomizeArray()
@@ -87,54 +160,173 @@ void randomizeArray()
     {
         array_a[i]=1+rand()%range;
     }
+    visualize();
+    std::cout << "Array has been randomized" << std::endl;
 }
 
 void insertionSort()
 {
     std::cout << "using insertion sort" << std::endl;
     current_Sort = 0;
-    int i = 0, key = 0;
-    for(i = 0; arraySize > i; i++)
+    int key = 0;
+    for(current_Compare = 0; arraySize > current_Compare; current_Compare++)
     {
-        key = array_a[i];
-        current_Sort = i - 1;
+        key = array_a[current_Compare];
+        current_Sort = current_Compare - 1;
 
-        while (current_Sort >= 0 && array_a[current_Sort] > key)
+        while (current_Sort >= 0 && array_a[current_Sort] > key && !quit && sortingDone == 0)
         {
             array_a[current_Sort + 1] = array_a[current_Sort];
             current_Sort = current_Sort - 1;
             visualize();
-            SDL_Delay(5);
+            SDL_Delay(runningDelay);
+            specialKeyHandler();
         }
         array_a[current_Sort + 1] = key;
     }
     std::cout << "Done" << std::endl;
+    sortingDone = 1;
 }
 
-void bubbleSort() // Dont use it will crash terminal 8) 8) Perfect code 10/10
+void bubbleSort()
 {
-    std::cout << "using bubble sort" << std::endl;
-    current_Sort = 0;
-    int tmp = 0, i=0;
-    int counter = 0;
-    while (counter < arraySize-1)
+    int tmp = 0;
+    bool swapped; 
+    while(true && !quit && sortingDone == 0)
     {
-        for (i = 0; i < arraySize-1; i++)
+        swapped = false;
+        for (current_Sort = 0; current_Sort < arraySize-1; current_Sort++)
         {
-            if (array_a[i]>array_a[i+1])
+            
+            current_Compare = current_Sort + 1;
+            if (array_a[current_Sort] > array_a[current_Compare])
             {
-                current_Sort = i;
-                tmp = array_a[i];
-                array_a[i] = array_a[i+1];
-                array_a[i+1] = tmp;
+                tmp = array_a[current_Sort];
+                array_a[current_Sort] = array_a[current_Compare];
+                array_a[current_Compare] = tmp;
+                swapped = true;
             }
             visualize();
-            SDL_Delay(2);
+            SDL_Delay(runningDelay);
+            specialKeyHandler();
         }
-        counter += 1;
+        if(!swapped)
+        {
+            break;
+        }
     }
-    std::cout << "Done" << std::endl;
 }
+
+void bubbleSortOptimized()
+{
+    int tmp = 0;
+    bool swapped; 
+    int n = arraySize-1;
+    while(true && !quit && sortingDone == 0)
+    {
+        swapped = false;
+        for (current_Sort = 0; current_Sort < n; current_Sort++)
+        {
+            
+            current_Compare = current_Sort + 1;
+            if (array_a[current_Sort] > array_a[current_Compare])
+            {
+                tmp = array_a[current_Sort];
+                array_a[current_Sort] = array_a[current_Compare];
+                array_a[current_Compare] = tmp;
+                swapped = true;
+            }
+            visualize();
+            SDL_Delay(runningDelay);
+            specialKeyHandler();
+        }
+        n -= 1;
+        if(!swapped)
+        {
+            std::cout << "Done" << std::endl;
+            break;
+        }
+    }
+}
+// int mMerge(int array[], int const left, int const mid, int const right)
+// {
+//     auto const subArrayOne = mid - left +1;
+//     auto const subArrayTwo = right - mid;
+
+//     auto *leftArray = new int[subArrayOne],
+//          *rightArray = new int[subArrayTwo];
+
+//     // Copy data to temp arrays leftArray[] and rightArray[]
+//     for (auto i = 0; i < subArrayOne; i++)
+//         leftArray[i] = array[left + i];
+//     for (auto j = 0; j < subArrayTwo; j++)
+//         rightArray[j] = array[mid + 1 + j];
+  
+//     current_Sort = 0, // Initial index of first sub-array
+//         current_Compare = 0; // Initial index of second sub-array
+//     int indexOfMergedArray = left; // Initial index of merged array
+
+//     // Merge the temp arrays back into array[left..right]
+//     while (current_Sort < subArrayOne && current_Compare < subArrayTwo) {
+//         if (leftArray[current_Sort] <= rightArray[current_Compare]) {
+//             array[indexOfMergedArray] = leftArray[current_Sort];
+//             current_Sort++;
+//         }
+//         else {
+//             array[indexOfMergedArray] = rightArray[current_Compare];
+//             current_Compare++;
+//         }
+//         indexOfMergedArray++;
+//         visualize();
+//         SDL_Delay(runningDelay);
+//         specialKeyHandler();
+//     }
+//     // Copy the remaining elements of
+//     // left[], if there are any
+//     while (current_Sort < subArrayOne) {
+//         array[indexOfMergedArray] = leftArray[current_Sort];
+//         current_Sort++;
+//         indexOfMergedArray++;
+//         visualize();
+//         SDL_Delay(runningDelay);
+//         specialKeyHandler();
+//     }
+//     // Copy the remaining elements of
+//     // right[], if there are any
+//     while (current_Compare < subArrayTwo) {
+//         array[indexOfMergedArray] = rightArray[current_Compare];
+//         current_Compare++;
+//         indexOfMergedArray++;
+//         visualize();
+//         SDL_Delay(runningDelay);
+//         specialKeyHandler();
+//     }
+// }
+
+// void mSort(int A[], int const begin, int const end)
+// {
+
+//     if (begin>=end)
+//         return;
+    
+//     auto mid = begin + (end - begin) / 2;
+//     mSort(A, begin, mid);
+//     mSort(A, mid + 1, end);
+//     mMerge(A, begin, mid, end);
+
+
+// }
+
+// void mergeSort()
+// {
+//     mSort(array_a, 0, arraySize-1);
+
+// }
+
+
+
+
+
 
 void printControls()
 {
@@ -143,6 +335,80 @@ void printControls()
     std::cout << "0: Randomize the array" << std::endl;
     std::cout << "1: Use insertion sort" << std::endl;
     std::cout << "2: Use bubble sort" << std::endl;
+    std::cout << "3: Use optimized bubble sort" << std::endl;
+    //std::cout << "4: Merge sort" << std::endl;
+    std::cout << "+: increase delay by 1 ms" << std::endl;
+    std::cout << "-: decrease delay by 1 ms" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Running delay is set to: " << runningDelay << " ms" << std::endl;
+}
+
+void generalKeys()
+{
+    switch(kevent.key.keysym.sym)
+    {
+        case SDLK_0:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                randomizeArray();
+                sortingDone = 0;
+                printControls();
+                break; 
+            }
+            else
+            {
+                break;
+            }
+        case SDLK_1:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                insertionSort();
+                SDL_Delay(2000);
+                printControls();
+                break;
+            }
+            else
+            {
+                break;
+            }
+        case SDLK_2:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                bubbleSort();
+                SDL_Delay(2000);
+                printControls();
+                break;
+            }
+            else
+            {
+                break;
+            }    
+        case SDLK_3:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                bubbleSortOptimized();
+                SDL_Delay(2000);
+                printControls();
+                break;
+            }
+            else
+            {
+                break;
+            }  
+        // case SDLK_4:
+        //     if (kevent.key.state == SDL_PRESSED)
+        //     {
+        //         mergeSort();
+        //         SDL_Delay(2000);
+        //         printControls();
+        //         break;
+        //     }
+        //     else
+        //     {
+        //         break;
+        //     }  
+        break;
+    }
 }
 
 void close()
@@ -159,7 +425,7 @@ void close()
 
 int main( int argc, char* args[] )
 {
-    randomizeArray();
+
     printControls();
     //check initialization
     if(!init())
@@ -168,68 +434,20 @@ int main( int argc, char* args[] )
     }
     else
     {
-        //Loop flag
-        bool quit = false;
-        //Event handler
-        SDL_Event kevent;
+        randomizeArray();
         //While application is running
         while (!quit)
         {   
-            
             //Handle events on queue
             while(SDL_PollEvent(&kevent) !=0)
             {   
                 //User requests quit
-                switch(kevent.key.keysym.sym)
+                if(kevent.key.state == SDL_PRESSED)
                 {
-                    case SDLK_q:
-                        if (kevent.key.state == SDL_PRESSED)
-                        {
-                            quit = true;
-                            break;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    case SDLK_0:
-                        if (kevent.key.state == SDL_PRESSED)
-                        {
-                            randomizeArray();
-                            printControls();
-                            break; 
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    case SDLK_1:
-                        if (kevent.key.state == SDL_PRESSED)
-                        {
-                            insertionSort();
-                            printControls();
-                            break;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    case SDLK_2:
-                        if (kevent.key.state == SDL_PRESSED)
-                        {
-                            bubbleSort();
-                            printControls();
-                            break;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                        
-                        
+                    specialKeys();
+                    generalKeys();
                 }
             }
-            visualize();
         }
     }
     //Free resources and close SDL
