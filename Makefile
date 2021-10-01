@@ -6,4 +6,4 @@ OBJ_NAME = sorting_alg_SDL2_main
 
 #This is the target that compiles our executable
 all : $(OBJS)
-	g++ $(OBJS) -w -lSDL2 -lSDL2_ttf -o $(OBJ_NAME)
+	g++ $(OBJS) -w -lSDL2 -o $(OBJ_NAME)
