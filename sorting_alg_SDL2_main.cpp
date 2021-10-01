@@ -93,7 +93,7 @@ void visualize()
 
     }
     SDL_RenderPresent(gRenderer);
-}
+
 
 void specialKeys()
 {
