@@ -7,7 +7,8 @@
 //Screen dimensions
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
-const int arraySize = 100;
+const int arraySize = 200;
+bool light_mode = false;
 int array_a[arraySize] = {0};
 const int range = SCREEN_HEIGHT;
 int current_Sort = 0, current_Compare = 0;
@@ -77,7 +78,7 @@ void close()
     SDL_Quit();  
 }
 
-void visualize()
+void visualize_light()
 {
     //Clear rendering surface with white
     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
@@ -108,6 +109,56 @@ void visualize()
     SDL_RenderPresent(gRenderer);
 }
 
+void visualize_dark()
+{
+    //Clear rendering surface with white
+    SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
+    SDL_RenderClear(gRenderer);
+
+    std::cout << "Iteration: " << iteration << std::endl;
+    iteration++;
+    
+    for (int i = 0; i <= arraySize-1; i++)
+    {
+        // if(i == current_Sort)
+        // {
+        //     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0x80);
+        //     SDL_Rect outlineRectSelector = {(i)*((float)SCREEN_WIDTH/(float)arraySize), 10, ((float)SCREEN_WIDTH/(float)arraySize)-1, 20};
+
+        //     SDL_RenderFillRect(gRenderer, &outlineRectSelector);
+        //     SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
+        // }
+        if(i == current_Sort)
+        {
+            SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+        }
+        // else if(i == current_Compare && current_Compare != 0)
+        // {
+        //     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0x00, 0xFF);
+        // }
+        else
+        {
+            SDL_SetRenderDrawColor(gRenderer, 0x69, 0x69, 0x69, 0xFF);
+        }
+        SDL_Rect outlineRect = {(i)*((float)SCREEN_WIDTH/(float)arraySize), SCREEN_HEIGHT, ((float)SCREEN_WIDTH/(float)arraySize)-1, -array_a[i]*0.95};
+
+        SDL_RenderFillRect(gRenderer, &outlineRect);
+    }
+    SDL_RenderPresent(gRenderer);
+}
+
+void visualize()
+{
+    if (light_mode == true)
+    {
+        visualize_light();
+    }
+    else
+    {
+        visualize_dark();
+    }
+    
+}
 void specialKeys()
 {
     switch(kevent.key.keysym.sym)
@@ -166,6 +217,13 @@ void specialKeyHandler()
     }
 }
 
+void sortingFrameHandler()
+{
+    visualize();
+    SDL_Delay(runningDelay);
+    specialKeyHandler();
+}
+
 void randomizeArray()
 {
     for (int i=0;i<arraySize-1;i++)
@@ -190,9 +248,7 @@ void insertionSort()
         {
             array_a[current_Sort + 1] = array_a[current_Sort];
             current_Sort = current_Sort - 1;
-            visualize();
-            SDL_Delay(runningDelay);
-            specialKeyHandler();
+            sortingFrameHandler();
         }
         array_a[current_Sort + 1] = key;
     }
@@ -218,9 +274,7 @@ void bubbleSort()
                 array_a[current_Compare] = tmp;
                 swapped = true;
             }
-            visualize();
-            SDL_Delay(runningDelay);
-            specialKeyHandler();
+            sortingFrameHandler();
         }
         if(!swapped)
         {
@@ -248,9 +302,7 @@ void bubbleSortOptimized()
                 array_a[current_Compare] = tmp;
                 swapped = true;
             }
-            visualize();
-            SDL_Delay(runningDelay);
-            specialKeyHandler();
+            sortingFrameHandler();
         }
         n -= 1;
         if(!swapped)
@@ -292,19 +344,16 @@ int mSortMerge(int array_a[], int start, int mid, int end)
         {
             array_a[k] = L[i];
             i++;
-            visualize();
-            SDL_Delay(runningDelay);
-            specialKeyHandler();
+            sortingFrameHandler();
         }
         else
         {
             array_a[k] = R[j];
             j++;
-            visualize();
-            SDL_Delay(runningDelay);
-            specialKeyHandler();
-        }
+            sortingFrameHandler();
+        }       
         k++;
+        current_Sort = k;
     }
 
     while (i < n1)
@@ -330,8 +379,6 @@ int mSortSplit(int array_a[], int start, int end)
     mSortSplit(array_a, start, (start+end)/2);
     mSortSplit(array_a, ((start+end)/2)+1, end);
     mSortMerge(array_a, start, (start+end)/2, end);
-
-    
 }
 
 void mergeSort()
@@ -376,6 +423,7 @@ void generalKeys()
             {
                 insertionSort();
                 SDL_Delay(2000);
+                randomizeArray();
                 printControls();
                 break;
             }
@@ -388,6 +436,7 @@ void generalKeys()
             {
                 bubbleSort();
                 SDL_Delay(2000);
+                randomizeArray();
                 printControls();
                 break;
             }
@@ -400,6 +449,7 @@ void generalKeys()
             {
                 bubbleSortOptimized();
                 SDL_Delay(2000);
+                randomizeArray();
                 printControls();
                 break;
             }
@@ -412,6 +462,7 @@ void generalKeys()
             {
                 mergeSort();
                 SDL_Delay(2000);
+                randomizeArray();
                 printControls();
                 break;
             }
@@ -424,6 +475,7 @@ void generalKeys()
         //     {
         //         quickSort();
         //         SDL_Delay(2000);
+        //         randomizeArray();
         //         printControls();
         //         break;
         //     }
