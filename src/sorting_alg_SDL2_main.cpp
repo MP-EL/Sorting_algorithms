@@ -3,13 +3,25 @@
 //#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <iostream>
+#include <vector>
+
+
+/*
+
+To use this program compile it with SDL2 (use the Makefile)
+
+Any interaction with the program will happen through the SDL2 window but prints happen in the terminal. 
+
+*/
+
 
 //Screen dimensions
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
-const int arraySize = 200;
+int arraySize = 64;
 bool light_mode = false;
-int array_a[arraySize] = {0};
+//int array_a[arraySize] = {0};
+std::vector<int> array_a(arraySize, 0);
 const int range = SCREEN_HEIGHT;
 int current_Sort = 0, current_Compare = 0;
 int sortingDone = 0;
@@ -21,8 +33,6 @@ SDL_Event kevent;
 int runningDelay = 5;
 //Rendering window
 SDL_Window* gWindow = NULL;
-
-//TTF_Font* Sans = TTF_OpenFont("Sans.ttf", 14);
 
 //The surface contained by the window
 SDL_Surface* gScreenSurface = NULL;
@@ -314,15 +324,15 @@ void bubbleSortOptimized()
 }
 
 
-int mSortMerge(int array_a[], int start, int mid, int end)
+int mSortMerge(std::vector<int> & array_a, int start, int mid, int end)
 {
     //I create a few ints for moving contents of main array into sub arrays.
     int n1 = mid - start + 1;
     int n2 = end - mid;
 
     //Then i create to arrays a left and and right array.
-    int L[n1];
-    int R[n2];
+    std::vector<int> L(n1, 0);
+    std::vector<int> R(n2, 0);
 
     //Then i transfer the contents of the array into right and left array.
     for (int i = 0; i < n1; i++)
@@ -371,7 +381,7 @@ int mSortMerge(int array_a[], int start, int mid, int end)
     }
 }
 
-int mSortSplit(int array_a[], int start, int end)
+int mSortSplit(std::vector<int> & array_a, int start, int end)
 {
     if (start >= end)
         return 0;
@@ -390,6 +400,7 @@ void printControls()
 {
     iteration = 0;
     std::system("clear");
+    std::cout << "a: Change size of array, current size is: " << arraySize << std::endl;
     std::cout << "To run a sorting algorythm type one of the following numbers: " << std::endl;
     std::cout << "0: Randomize the array" << std::endl;
     std::cout << "1: Use insertion sort" << std::endl;
@@ -400,6 +411,95 @@ void printControls()
     std::cout << "-: decrease delay by 1 ms" << std::endl;
     std::cout << std::endl;
     std::cout << "Running delay is set to: " << runningDelay << " ms" << std::endl;
+}
+
+
+void arrayResize(int current_size, int new_size)
+{
+    if (current_size < new_size)
+        {
+            for (int i = 0; i < new_size; i++)
+            {
+                array_a.push_back(0);
+                arraySize = new_size;
+            }
+        }
+        else if (current_size > new_size)
+        {
+            for (int i = 0; i < new_size; i++)
+            {
+                arraySize = new_size;
+                array_a.pop_back();
+            }
+        }
+}
+
+int arrayResizeHandler()
+{
+    std::system("clear");
+    std::cout << "0: size 32" << std::endl;
+    std::cout << "1: size 64" << std::endl;
+    std::cout << "2: size 128" << std::endl;
+    std::cout << "3: size 256" << std::endl;
+    std::cout << "4: size 512" << std::endl;
+
+    while(SDL_WaitEvent(&kevent) !=0)
+    {
+        switch(kevent.key.keysym.sym)
+            {
+                case SDLK_0:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        arrayResize(arraySize, 32);
+                        return 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                case SDLK_1:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        arrayResize(arraySize, 64);
+                        return 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                case SDLK_2:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        arrayResize(arraySize, 128);
+                        return 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                case SDLK_3:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        arrayResize(arraySize, 256);
+                        return 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                case SDLK_4:
+                    if (kevent.key.state == SDL_PRESSED)
+                    {
+                        arrayResize(arraySize, 512);
+                        return 0;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                break;
+            }
+    }
 }
 
 void generalKeys()
@@ -470,26 +570,24 @@ void generalKeys()
             {
                 break;
             }  
-        // case SDLK_5:
-        //     if (kevent.key.state == SDL_PRESSED)
-        //     {
-        //         quickSort();
-        //         SDL_Delay(2000);
-        //         randomizeArray();
-        //         printControls();
-        //         break;
-        //     }
-        //     else
-        //     {
-        //         break;
-        //     }  
+        case SDLK_a:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                arrayResizeHandler();
+                randomizeArray();
+                printControls();
+                break;
+            }
+            else
+            {
+                break;
+            }   
         break;
     }
 }
 
 int main( int argc, char* args[] )
 {
-
     printControls();
     //check initialization
     if(!init())
