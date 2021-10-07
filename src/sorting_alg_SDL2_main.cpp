@@ -88,12 +88,65 @@ void close()
     SDL_Quit();  
 }
 
+std::string getOsName()
+{
+    #ifdef _WIN32
+    return "Win";
+    #elif _WIN64
+    return "Win";
+    #elif __APPLE__ || __MACH__
+    return "Mac";
+    #elif __linux__
+    return "Linux";
+    #else
+    return "Other";
+    #endif
+}                
+
+void clearTerminal()
+{
+    std::string opSys = getOsName();
+    if (opSys == "Win")
+    {
+        std::system("cls");
+    }
+    else if (opSys == "Mac")
+    {
+        std::system("clear");
+    }
+    else if (opSys == "Linux")
+    {
+        std::system("clear");
+    }
+}
+
+void printControls()
+{
+    clearTerminal();
+    std::cout << "a: Change size of array, current size is: " << arraySize << std::endl;
+    std::cout << "s: Change light mode" << std::endl;
+    std::cout << "To run a sorting algorythm type one of the following numbers: " << std::endl;
+    std::cout << "0: Randomize the array" << std::endl;
+    std::cout << "1: Use insertion sort" << std::endl;
+    std::cout << "2: Use bubble sort" << std::endl;
+    std::cout << "3: Use optimized bubble sort" << std::endl;
+    std::cout << "4: Merge sort" << std::endl;
+    std::cout << std::endl;
+    std::cout << "The following buttons can be changed at anypoint when running algorithms: " << std::endl;
+    std::cout << "q: Quits the program" << std::endl;
+    std::cout << "+: increase delay by 1 ms" << std::endl;
+    std::cout << "-: decrease delay by 1 ms" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Running delay is set to: " << runningDelay << " ms" << std::endl;
+}
+
 void visualize_light()
 {
     //Clear rendering surface with white
     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(gRenderer);
 
+    clearTerminal();
     std::cout << "Iteration: " << iteration << std::endl;
     iteration++;
     
@@ -104,15 +157,15 @@ void visualize_light()
         {
             SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
         }
-        else if(i == current_Compare)
-        {
-            SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
-        }
+        // else if(i == current_Compare)
+        // {
+        //     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
+        // }
         else
         {
             SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0xFF, 0xFF);
         }
-        SDL_Rect outlineRect = {(i)*(SCREEN_WIDTH/arraySize), SCREEN_HEIGHT, float((SCREEN_WIDTH/arraySize)-1), -array_a[i]};
+        SDL_Rect outlineRect = {(i)*((float)SCREEN_WIDTH/(float)arraySize), SCREEN_HEIGHT, ((float)SCREEN_WIDTH/(float)arraySize)-1, -array_a[i]*0.95};
         
         SDL_RenderFillRect(gRenderer, &outlineRect);
     }
@@ -125,6 +178,7 @@ void visualize_dark()
     SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0x00);
     SDL_RenderClear(gRenderer);
 
+    clearTerminal();
     std::cout << "Iteration: " << iteration << std::endl;
     iteration++;
     
@@ -189,7 +243,7 @@ void specialKeys()
             if (kevent.key.state == SDL_PRESSED)
             {
                 runningDelay = runningDelay + 1;
-                std::cout << "Changed running delay to: " << runningDelay << " ms" << std::endl;
+                printControls();
                 break;
             }
             else
@@ -207,7 +261,7 @@ void specialKeys()
                 else
                 {
                     runningDelay = runningDelay - 1;
-                    std::cout << "Changed running delay to: " << runningDelay << " ms" << std::endl;
+                    printControls();
                     break;
                 }
             }
@@ -396,24 +450,6 @@ void mergeSort()
     mSortSplit(array_a, 0, arraySize);
 }
 
-void printControls()
-{
-    iteration = 0;
-    std::system("clear");
-    std::cout << "a: Change size of array, current size is: " << arraySize << std::endl;
-    std::cout << "To run a sorting algorythm type one of the following numbers: " << std::endl;
-    std::cout << "0: Randomize the array" << std::endl;
-    std::cout << "1: Use insertion sort" << std::endl;
-    std::cout << "2: Use bubble sort" << std::endl;
-    std::cout << "3: Use optimized bubble sort" << std::endl;
-    std::cout << "4: Merge sort" << std::endl;
-    std::cout << "+: increase delay by 1 ms" << std::endl;
-    std::cout << "-: decrease delay by 1 ms" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Running delay is set to: " << runningDelay << " ms" << std::endl;
-}
-
-
 void arrayResize(int current_size, int new_size)
 {
     if (current_size < new_size)
@@ -436,12 +472,12 @@ void arrayResize(int current_size, int new_size)
 
 int arrayResizeHandler()
 {
-    std::system("clear");
-    std::cout << "0: size 32" << std::endl;
-    std::cout << "1: size 64" << std::endl;
-    std::cout << "2: size 128" << std::endl;
-    std::cout << "3: size 256" << std::endl;
-    std::cout << "4: size 512" << std::endl;
+    clearTerminal();
+    std::cout << "0: size 16" << std::endl;
+    std::cout << "1: size 32" << std::endl;
+    std::cout << "2: size 64" << std::endl;
+    std::cout << "3: size 128" << std::endl;
+    std::cout << "4: size 256" << std::endl;
 
     while(SDL_WaitEvent(&kevent) !=0)
     {
@@ -450,7 +486,7 @@ int arrayResizeHandler()
                 case SDLK_0:
                     if (kevent.key.state == SDL_PRESSED)
                     {
-                        arrayResize(arraySize, 32);
+                        arrayResize(arraySize, 16);
                         return 0;
                     }
                     else
@@ -460,7 +496,7 @@ int arrayResizeHandler()
                 case SDLK_1:
                     if (kevent.key.state == SDL_PRESSED)
                     {
-                        arrayResize(arraySize, 64);
+                        arrayResize(arraySize, 32);
                         return 0;
                     }
                     else
@@ -470,7 +506,7 @@ int arrayResizeHandler()
                 case SDLK_2:
                     if (kevent.key.state == SDL_PRESSED)
                     {
-                        arrayResize(arraySize, 128);
+                        arrayResize(arraySize, 64);
                         return 0;
                     }
                     else
@@ -480,7 +516,7 @@ int arrayResizeHandler()
                 case SDLK_3:
                     if (kevent.key.state == SDL_PRESSED)
                     {
-                        arrayResize(arraySize, 256);
+                        arrayResize(arraySize, 128);
                         return 0;
                     }
                     else
@@ -490,7 +526,7 @@ int arrayResizeHandler()
                 case SDLK_4:
                     if (kevent.key.state == SDL_PRESSED)
                     {
-                        arrayResize(arraySize, 512);
+                        arrayResize(arraySize, 256);
                         return 0;
                     }
                     else
@@ -581,7 +617,19 @@ void generalKeys()
             else
             {
                 break;
-            }   
+            }
+        case SDLK_s:
+            if (kevent.key.state == SDL_PRESSED)
+            {
+                light_mode = !light_mode;
+                visualize();
+                printControls();
+                break;
+            }
+            else
+            {
+                break;
+            }         
         break;
     }
 }
@@ -597,6 +645,7 @@ int main( int argc, char* args[] )
     else
     {
         randomizeArray();
+        printControls();
         //While application is runningq
         while (!quit)
         {   
@@ -608,7 +657,7 @@ int main( int argc, char* args[] )
                 {
                     specialKeys();
                     generalKeys();
-                    //SDL_Delay(5);
+                    iteration = 0;
                 } 
             }
         }
