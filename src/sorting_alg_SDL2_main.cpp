@@ -192,14 +192,15 @@ void visualize_dark()
         //     SDL_RenderFillRect(gRenderer, &outlineRectSelector);
         //     SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
         // }
+        // if(i == current_Compare && current_Compare != 0)
+        // {
+        //     SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0x00, 0xFF);
+        // }
         if(i == current_Sort)
         {
             SDL_SetRenderDrawColor(gRenderer, 0xFF, 0x00, 0x00, 0xFF);
         }
-        // else if(i == current_Compare && current_Compare != 0)
-        // {
-        //     SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0x00, 0xFF);
-        // }
+
         else
         {
             SDL_SetRenderDrawColor(gRenderer, 0x69, 0x69, 0x69, 0xFF);
@@ -408,16 +409,20 @@ int mSortMerge(std::vector<int> & array_a, int start, int mid, int end)
         {
             array_a[k] = L[i];
             i++;
+            current_Sort = k;
+            current_Compare = start + i;
             sortingFrameHandler();
         }
         else
         {
             array_a[k] = R[j];
             j++;
+            current_Sort = k;
+            current_Compare = mid + 1 + j;
             sortingFrameHandler();
         }       
         k++;
-        current_Sort = k;
+        
     }
 
     while (i < n1)
